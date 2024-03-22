@@ -1,0 +1,282 @@
+import tkinter as tk
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox 
+
+#declaramos variables globales para los datos y los widgets
+global base
+base=None
+
+global texBoxDocID
+texBoxDocID=None
+
+global texBoxNombre
+texBoxNombre=None
+
+global texBoxApellidos
+texBoxApellidos=None
+
+global texBoxEdad
+texBoxEdad=None
+
+global combo
+combo=None
+
+global texBoxOcupacion
+texBoxOcupacion=None
+
+global groupBox
+groupBox=None
+
+global tree
+tree=None
+
+global data
+data=None
+#con esta función se crea el formulario principal del registro
+def Formulario():
+    global texBoxDocID
+    global texBoxNombre
+    global texBoxApellidos
+    global texBoxEdad
+    global combo
+    global texBoxOcupacion
+    global tree
+    global groupBox
+    global base
+    global data
+
+    try:
+        #creamos la ventana de nuestra aplicación
+        base = Tk()
+        base.geometry("1200x300")
+        base.title("Sistema de Gestión de Usuarios para Investigación Criminal")
+        base.config(bg='light blue')
+        
+        groupBox = LabelFrame(base, text="Usuarios investigación", padx=5, pady=5)
+        groupBox.grid(row=0, column=0, padx=10, pady=10)
+
+        #Creamos etiquetas y cuadros para el input de datos del usuario
+        labelDocId = Label(groupBox, text="DNI/NIE: ", width=13, font=("calibri", 12))
+        labelDocId.grid(row=0, column=0)
+        texBoxDocID = Entry(groupBox)
+        texBoxDocID.grid(row=0, column=1)
+
+        labelNombre = Label(groupBox, text="Nombre: ", width=13, font=("calibri", 12))
+        labelNombre.grid(row=1, column=0)
+        texBoxNombre = Entry(groupBox)
+        texBoxNombre.grid(row=1, column=1)
+
+        labelApellidos = Label(groupBox, text="Apellidos: ", width=13, font=("calibri", 12))
+        labelApellidos.grid(row=2, column=0)
+        texBoxApellidos = Entry(groupBox)
+        texBoxApellidos.grid(row=2, column=1)
+
+        labelEdad = Label(groupBox, text="Edad: ", width=13, font=("calibri", 12))
+        labelEdad.grid(row=3, column=0)
+        texBoxEdad = Entry(groupBox)
+        texBoxEdad.grid(row=3, column=1)
+
+        labelSexo = Label(groupBox, text="Sexo: ", width=13, font=("calibri", 12))
+        labelSexo.grid(row=4, column=0)
+        seleccionSexo = tk.StringVar()
+        combo = ttk.Combobox(groupBox, values=["Masculino", "Femenino"], textvariable=seleccionSexo)
+        combo.grid(row=4, column=1)
+
+        labelOcupación = Label(groupBox, text="Ocupación: ", width=13, font=("calibri", 12))
+        labelOcupación.grid(row=5, column=0)
+        texBoxOcupacion = Entry(groupBox)
+        texBoxOcupacion.grid(row=5, column=1)
+
+        #Los botones sirven para recibir los eventos del usuario
+        Button(groupBox, text="Modificar", width=10, command=modificaRegistros).grid(row=7, column=0)
+        Button(groupBox, text="Guardar", width=10, command=guardarRegistros).grid(row=7, column=1)
+        Button(groupBox, text="Eliminar", width=10, command=eliminarRegistros).grid(row=7, column=4)
+        Button(groupBox, text="Buscar", width=10, command=buscarRegistros).grid(row=7, column=3)
+
+        #se crea este marco para mostrar los datos registrados
+        groupBox = LabelFrame(base, text="Base de datos Investigación", padx=5, pady=5)
+        groupBox.grid(row=0, column=1, padx=5, pady=5)
+
+        #muestra los datos en forma de tabla
+        tree = ttk.Treeview(groupBox, columns=("DNI/NIE", "Nombre", "Apellidos", "Edad", "Sexo", "Ocupación"),
+                            show='headings', height=5)
+        #configuracion de las columnas y encabezados de la tabla
+        tree.column("# 1", anchor=CENTER, width=100)
+        tree.heading("# 1", text="DNI/NIE")
+        tree.column("# 2", anchor=CENTER)
+        tree.heading("# 2", text="Nombre")
+        tree.column("# 3", anchor=CENTER)
+        tree.heading("# 3", text="Apellidos")
+        tree.column("# 4", anchor=CENTER, width=100)
+        tree.heading("# 4", text="Edad")
+        tree.column("# 5", anchor=CENTER, width=100)
+        tree.heading("# 5", text="Sexo")
+        tree.column("# 6", anchor=CENTER)
+        tree.heading("# 6", text="Ocupación")
+        
+        #seleccionar datos al clickear en una columna
+        tree.bind("<<TreeviewSelect>>", seleccionarDatos)
+
+        tree.pack()
+
+        #permite cerrar la ventana
+        base.mainloop()
+
+    except ValueError as error:
+        print("Error al mostrar la interfaz, error: {}".format(error))
+
+#se crea una lista para poder almacenar los datos del usuario
+data = []
+#Función para guardar los registros
+def guardarRegistros():
+    global texBoxDocID, texBoxNombre, texBoxApellidos, texBoxEdad, combo, texBoxOcupacion, groupBox, data
+
+    try:
+        if texBoxNombre is None or texBoxApellidos is None or texBoxDocID is None or texBoxEdad is None or combo is None or texBoxOcupacion is None:
+            print("Los widgets no están inicializados ")
+            return
+
+        #obtiene los datos
+        dni = texBoxDocID.get()
+        nombre = texBoxNombre.get()
+        apellidos = texBoxApellidos.get()
+        edad = texBoxEdad.get()
+        sexo = combo.get()
+        ocupacion = texBoxOcupacion.get()
+
+        #permite agregar a la lista de datos
+        data.append((dni, nombre, apellidos, edad, sexo, ocupacion))
+
+        messagebox.showinfo("ACTUALIZACIÓN", "LOS DATOS FUERON GUARDADOS.")
+        mostrarDato()
+
+        #limpiar datos al guardarlos
+        texBoxDocID.delete(0, END)
+        texBoxNombre.delete(0, END)
+        texBoxApellidos.delete(0, END)
+        texBoxEdad.delete(0, END)
+        texBoxOcupacion.delete(0, END)
+
+    except ValueError as error:
+        print("Error al ingresar los datos: {}".format(error))
+#Función para mostrar datos en la tabla
+def mostrarDato():
+    global tree, data
+
+    try:
+        
+        for row in tree.get_children():
+            tree.delete(row)
+        #inserta los datos de la lista en la tabla
+        for dato in data:
+            tree.insert("", "end", values=dato)
+    except ValueError as error:
+        print("Error al actualizar tabla: {}".format(error))
+#Función que selecciona los datos
+def seleccionarDatos(event):
+    global tree
+
+    try:
+        #se obtiene la fila y luego se relaciona con los cuadros de entrada
+        itemseleccionador = tree.focus()
+
+        if itemseleccionador:
+            values = tree.item(itemseleccionador)['values']
+
+            texBoxDocID.delete(0, END)
+            texBoxDocID.insert(0, values[0])
+            texBoxNombre.delete(0, END)
+            texBoxNombre.insert(0, values[1])
+            texBoxApellidos.delete(0, END)
+            texBoxApellidos.insert(0, values[2])
+            texBoxEdad.delete(0, END)
+            texBoxEdad.insert(0, values[3])
+            texBoxOcupacion.delete(0, END)
+            texBoxOcupacion.insert(0, values[5])
+            combo.set(values[4])
+    except ValueError as error:
+        print("Error al seleccionar usuario: {}".format(error))
+#Función que modifica los datos
+def modificaRegistros():
+    global texBoxDocID, texBoxNombre, texBoxApellidos, texBoxEdad, combo, texBoxOcupacion, groupBox, data
+
+    try:
+        if texBoxNombre is None or texBoxApellidos is None or texBoxDocID is None or texBoxEdad is None or combo is None or texBoxOcupacion is None:
+            print("Los widgets no están inicializados ")
+            return
+
+        #obtiene datos ingresados
+        dni = texBoxDocID.get()
+        nombre = texBoxNombre.get()
+        apellidos = texBoxApellidos.get()
+        edad = texBoxEdad.get()
+        sexo = combo.get()
+        ocupacion = texBoxOcupacion.get()
+
+        #modifica los datos 
+        new_data = [row for row in data if row[0] != dni]
+        new_data.append((dni, nombre, apellidos, edad, sexo, ocupacion))
+        data = new_data
+
+        messagebox.showinfo("ACTUALIZACIÓN", "LOS DATOS FUERON MODIFICADOS.")
+
+        mostrarDato()
+
+        texBoxDocID.delete(0, END)
+        texBoxNombre.delete(0, END)
+        texBoxApellidos.delete(0, END)
+        texBoxEdad.delete(0, END)
+        texBoxOcupacion.delete(0, END)
+
+    except ValueError as error:
+        print("Error al ingresar los datos: {}".format(error))
+#funcio que elimina datos
+def eliminarRegistros():
+    global texBoxDocID, texBoxNombre, texBoxApellidos, texBoxEdad, combo, texBoxOcupacion, data
+
+    try:
+        if texBoxDocID is None:
+            print("Los widgets no están inicializados ")
+            return
+        #se obtiene el DNI del usuario y elimina el usuario
+        dni = texBoxDocID.get()
+        new_data = [row for row in data if row[0] != dni]
+        data = new_data
+
+        messagebox.showinfo("ACTUALIZACIÓN", "LOS DATOS FUERON ELIMINADOS")
+
+        mostrarDato()
+
+        texBoxDocID.delete(0, END)
+        texBoxNombre.delete(0, END)
+        texBoxApellidos.delete(0, END)
+        texBoxEdad.delete(0, END)
+        texBoxOcupacion.delete(0, END)
+        combo.delete(0, END)
+
+    except ValueError as error:
+        print("Error al ingresar los datos: {}".format(error))
+
+#Función que busca los datos de un usario, buscandolo desde el recuadro de registro ingresando el DNI en ventana emergente
+def buscarRegistros():
+    global data
+
+    try:
+        if texBoxDocID is None:
+            print("Los widgets no están inicializados ")
+            return
+
+        dni = texBoxDocID.get()
+        results = [row for row in data if row[0] == dni]
+
+        if results:
+            messagebox.showinfo("Búsqueda", f"Los datos del usuario con DNI/NIE {dni} son: {results}")
+        else:
+            messagebox.showinfo("Búsqueda", f"No se encontraron datos para el DNI/NIE {dni}")
+
+    except ValueError as error:
+        print("Error al buscar los datos: {}".format(error))
+
+
+Formulario()
